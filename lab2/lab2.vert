@@ -6,6 +6,7 @@ in vec2 inTexCoord;
 uniform mat4 rotationZ;
 uniform mat4 rotationX;
 uniform mat4 translation;
+uniform sampler2D texUnit;
 out vec4 gl_Position;
 out vec3 in_colors;
 out vec2 vert_TexCoord;

@@ -15,6 +15,7 @@
 #include "GL_utilities.h"
 #include "loadobj.h"
 #include <math.h>
+#include "LoadTGA.h"
 
 GLfloat translation[] = {    1.0f, 0.0f, 0.0f, -0.3f,
                           0.0f, 1.0f, 0.0f, 0.0f,
@@ -37,6 +38,10 @@ void init(void)
 	m = LoadModel("bunnyplus.obj");
 
 	dumpInfo();
+
+	// Load textures
+	int myTex;
+	LoadTGATextureSimple("maskros512.tga", &myTex);
 
 	// GL inits
 	glClearColor(1.0,0.0,0.0,0);
@@ -84,6 +89,9 @@ void init(void)
 		glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
 	}
+
+	glBindTexture(GL_TEXTURE_2D, myTex);
+	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
 }
 
 void OnTimer(int value)
