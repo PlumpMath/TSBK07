@@ -1,8 +1,10 @@
 #version 150
 
 in vec3 in_colors;
+in vec2 vert_TexCoord;
 out vec4 out_Color;
 
 void main(void){
-	out_Color = vec4(in_colors, 0.5);
+	float f = dot(in_colors, in_colors);
+	out_Color = vec4(vert_TexCoord, f, 1.0);
 }

@@ -29,11 +29,12 @@ unsigned int bunnyVertexArrayObjID;
 unsigned int bunnyVertexBufferObjID;
 unsigned int bunnyIndexBufferObjID;
 unsigned int bunnyNormalBufferObjID;
+unsigned int bunnyTexCoordBufferObjID;
 Model *m;
 
 void init(void)
 {
-	m = LoadModel("bunny.obj");
+	m = LoadModel("bunnyplus.obj");
 
 	dumpInfo();
 
@@ -54,6 +55,7 @@ void init(void)
 	glGenBuffers(1, &bunnyVertexBufferObjID);
 	glGenBuffers(1, &bunnyIndexBufferObjID);
 	glGenBuffers(1, &bunnyNormalBufferObjID);
+	glGenBuffers(1, &bunnyTexCoordBufferObjID);
 	printError("glGenBuffers");
 
 	glBindVertexArray(bunnyVertexArrayObjID);
@@ -74,6 +76,14 @@ void init(void)
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyIndexBufferObjID);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m->numIndices*sizeof(GLuint), m->indexArray, GL_STATIC_DRAW);
 	printError("Hemskt mycke hej");
+
+
+	if (m->texCoordArray != NULL) {
+		glBindBuffer(GL_ARRAY_BUFFER, bunnyTexCoordBufferObjID);
+		glBufferData(GL_ARRAY_BUFFER, m->numVertices*2*sizeof(GLfloat), m->texCoordArray, GL_STATIC_DRAW);
+		glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
+		glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
+	}
 }
 
 void OnTimer(int value)
@@ -85,7 +95,7 @@ void OnTimer(int value)
 void display(void)
 {
 	printError("pre display");
-	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 1000;
+	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
 	GLfloat rotationZ[16] = {
 		     cos(t), -sin(t), 0.0f, 0.0f,
 		     sin(t), cos(t), 0.0f, 0.0f,
