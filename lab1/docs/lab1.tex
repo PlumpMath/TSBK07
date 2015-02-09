@@ -1,0 +1,70 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[swedish]{babel}
+\begin{document}
+\section{Lab 1}
+
+\subsection{Setup and getting acquainted with the lab shell}
+\subsubsection{Where is the origin placed in the on-screen coordinate system?}
+The coordinate system seems to be centered at the middle of the screen.
+
+\subsubsection{Which direction are the X and Y axes pointing in the on-screen coordinate system?}
+The X-axis increases upwards and the Y-axis increases to the right.
+
+\subsubsection{The triangle color is controlled from the fragment shader. Would it be possible to control it from the main program? How?}
+We could perhaps pass a color to the fragment shader, perhaps through the vertex shader. The color is deceded by a four dimensional vector. The fields are (R, G, B, A).
+
+\subsection{Transformations in the vertex shader}
+\subsubsection{What is the purpose of the ``in'', ``out'' and ``uniform'' modifiers?}
+\begin{itemize}
+\item[in] Defines input variables to the shader program.
+\item[out] Defines output variablet of the shader program.
+\item[uniform] A constant value writable by OpenGL but constant for fragment and vertex shaders.
+\end{itemize}
+
+\subsubsection{What is the output of the vertex shader?}
+The output of our vertex shader is the position of the vertexes in the scene.
+
+\subsubsection{What does the function glUniformMatrix4fv do?}
+It defines a global Uniform accessable by the different shaders. It basically uploads them to the GPU.
+
+\subsection{Simple animation}
+\subsubsection{What is the frame rate of the animation?}
+The frame rate is 50 frames per second.
+
+\subsection{Color shading}
+\subsubsection{Did you need to do anything different when uploading the color data?}
+No, we do it in the exact same way.
+
+\subsubsection{The "in" and "out" modifiers are now used for something different. What?}
+They are exactly the same.
+
+\subsubsection{What is this kind of shading called? What could we use otherwise?}
+Color interpolation, textures could instead be used.
+
+
+\subsection{Building a cube, visible surface detection}
+\subsubsection{What problems did you encounter while building the cube?}
+Render ordering issues, solved by the z-buffer.
+
+\subsubsection{How do you change the facing of a polygon?}
+We changed which side of the cube faced the viewport by using the z-buffer.
+
+\subsection{Load a 3D model from disc}
+\subsubsection{Why do we need normal vectors for a model?}
+We need the normals to know which direction is the outward direction of the faces.
+
+\subsubsection{What did you do in your fragment shader?}
+  $out\_Color = vec4(in_colors, 0.5);$
+
+\subsubsection{Should a normal vector always be perpendicular to a certain triangle? If not, why?}
+It should be perpendicular to it's own triangle, otherwise it's not a normal.
+
+\subsubsection{Now we are using glBindBuffer and glBufferData again. They deal with buffers, but in what way?}
+\begin{itemize}
+\item[glBindBuffer] Tells OpenGL which buffer we're currently operating on.
+\item[glBufferData] Tells OpenGL how big a buffer we want created and then loads data into the buffer.
+\end{itemize}
+
+
+\end{document}
