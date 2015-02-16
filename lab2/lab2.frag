@@ -1,6 +1,5 @@
 #version 150
 
-in vec3 in_colors;
 in vec2 vert_TexCoord;
 uniform sampler2D texUnit;
 out vec4 out_Color;

@@ -16,6 +16,7 @@
 #include "loadobj.h"
 #include <math.h>
 #include "LoadTGA.h"
+#include "VectorUtils3.h"
 
 #define near 1.0
 #define far 30.0
@@ -33,7 +34,6 @@ GLfloat translation[] = { 1.0f, 0.0f, 0.0f, -0.3f,
                           0.0f, 1.0f, 0.0f, 0.0f,
                           0.0f, 0.0f, 1.0f, -2.0f,
                           0.0f, 0.0f, 0.0f, 1.0f };
-
 
 // vertex array object
 unsigned int vertexArrayObjID;
@@ -53,7 +53,7 @@ void init(void)
 	dumpInfo();
 
 	// Load textures
-	int myTex;
+	GLuint myTex;
 	LoadTGATextureSimple("maskros512.tga", &myTex);
 
 	// GL inits
@@ -115,6 +115,10 @@ void OnTimer(int value)
 
 void display(void)
 {
+	mat4 lookMatrix = lookAt(0.0f, 0.0f, 0.0f,
+													 -0.3f, -0.0f, -3.0f,
+													 1.0f, 0.0f, 0.0f);
+
 	printError("pre display");
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
 	GLfloat rotationZ[16] = {
@@ -131,6 +135,8 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "rotationX"), 1, GL_TRUE, rotationX);
 	glUniformMatrix4fv(glGetUniformLocation(program, "translation"), 1, GL_TRUE, translation);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
+	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
