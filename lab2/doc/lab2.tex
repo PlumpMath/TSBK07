@@ -1,0 +1,33 @@
+% -*- compile-command: "pdflatex lab2.tex"-*-
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[swedish]{babel}
+\begin{document}
+
+
+\section{Lab 2}
+\subsection{Procedural texture mapping}
+\subsubsection{How are the textures coordinates mapped on the bunny? Can you see what geometry was used?}
+$
+  float f = dot(in_colors, in_colors);
+  out_Color = vec4(vert_TexCoord, f, 1.0);
+$
+
+They are mapped by chaos. We see no geometry.
+
+\subsubsection{What kind of procedural texture did you make?}
+We don't know, we have absolutely no idea what we've done.
+
+
+\subsection{Texture mapping}
+\subsubsection{Can we modify how we access the texture? How?}
+We can modify the texture coordinates in the same ways that we modify any other vector.
+
+\subsubsection{Why can't we just pass the texture object to the shader? There is a specific reason for this, a limited resource. What?}
+The texture is very large and as of such it would slow down the program significantly if it was passed around between the shaders. Instead specific Texture Units are used and the textures are then accessed through indexes.
+
+\subsection{Projection}
+\subsubsection{How did you move the bunny to get it in view?}
+
+
+\end{document}
