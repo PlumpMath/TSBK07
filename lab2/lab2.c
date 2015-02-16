@@ -17,10 +17,23 @@
 #include <math.h>
 #include "LoadTGA.h"
 
-GLfloat translation[] = {    1.0f, 0.0f, 0.0f, -0.3f,
+#define near 1.0
+#define far 30.0
+#define right 0.5
+#define left -0.5
+#define top 0.5
+#define bottom -0.5
+
+GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
+															0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
+															0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
+															0.0f, 0.0f, -1.0f, 0.0f };
+
+GLfloat translation[] = { 1.0f, 0.0f, 0.0f, -0.3f,
                           0.0f, 1.0f, 0.0f, 0.0f,
-                          0.0f, 0.0f, 1.0f, 0.0f,
+                          0.0f, 0.0f, 1.0f, -2.0f,
                           0.0f, 0.0f, 0.0f, 1.0f };
+
 
 // vertex array object
 unsigned int vertexArrayObjID;
@@ -117,6 +130,7 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "rotationZ"), 1, GL_TRUE, rotationZ);
 	glUniformMatrix4fv(glGetUniformLocation(program, "rotationX"), 1, GL_TRUE, rotationX);
 	glUniformMatrix4fv(glGetUniformLocation(program, "translation"), 1, GL_TRUE, translation);
+	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

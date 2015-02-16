@@ -7,6 +7,7 @@ uniform mat4 rotationZ;
 uniform mat4 rotationX;
 uniform mat4 translation;
 uniform sampler2D texUnit;
+uniform mat4 projectionMatrix;
 out vec4 gl_Position;
 out vec3 in_colors;
 out vec2 vert_TexCoord;
@@ -15,6 +16,6 @@ void main(void)
 {
 	vert_TexCoord = inTexCoord;
 	in_colors = in_Normal;
-	gl_Position = rotationX * rotationZ * translation * vec4(in_Position, 1.0);
+	gl_Position = projectionMatrix * translation * rotationX * rotationZ  * vec4(in_Position, 1.0);
 
 }
