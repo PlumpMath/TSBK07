@@ -89,8 +89,9 @@ void init(void)
 	glBindBuffer(GL_ARRAY_BUFFER, bunnyNormalBufferObjID);
 	glBufferData(GL_ARRAY_BUFFER, m->numVertices*3*sizeof(GLfloat), m->normalArray, GL_STATIC_DRAW);
 	glVertexAttribPointer(glGetAttribLocation(program, "in_Normal"), 3, GL_FLOAT, GL_FALSE, 0, 0);
-	printError("Något annat");
+	printError("Första normalfelet");
 	glEnableVertexAttribArray(glGetAttribLocation(program, "in_Normal"));
+	printError("Andra normalfelet");
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, bunnyIndexBufferObjID);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, m->numIndices*sizeof(GLuint), m->indexArray, GL_STATIC_DRAW);
 	printError("Hemskt mycke hej");
@@ -102,6 +103,7 @@ void init(void)
 		glVertexAttribPointer(glGetAttribLocation(program, "inTexCoord"), 2, GL_FLOAT, GL_FALSE, 0, 0);
 		glEnableVertexAttribArray(glGetAttribLocation(program, "inTexCoord"));
 	}
+	printError("Fel fel fel");
 
 	glBindTexture(GL_TEXTURE_2D, myTex);
 	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
@@ -117,7 +119,7 @@ void display(void)
 {
 	mat4 lookMatrix = lookAt(0.0f, 0.0f, 0.0f,
 													 -0.3f, -0.0f, -3.0f,
-													 1.0f, 0.0f, 0.0f);
+													 0.0f, 1.0f, 0.0f);
 
 	printError("pre display");
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
