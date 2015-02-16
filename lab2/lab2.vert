@@ -15,7 +15,8 @@ const vec3 light = vec3(0.58, 0.58, 0.58);
 void main(void)
 {
 	float shade;
-	shade = dot(normalize(in_Normal), light);
+	vec3 out_normal = vec3(mat3(transform) * in_Normal);
+	shade = dot(normalize(out_normal), light);
 	shade = clamp(shade, 0, 1);
 	vert_shade = vec3(shade);
 
