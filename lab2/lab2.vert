@@ -3,9 +3,7 @@
 in vec3 in_Position;
 in vec2 inTexCoord;
 in vec3 in_Normal;
-uniform mat4 rotationZ;
-uniform mat4 rotationX;
-uniform mat4 translation;
+uniform mat4 transform;
 uniform mat4 projectionMatrix;
 uniform mat4 lookMatrix;
 out vec4 gl_Position;
@@ -22,6 +20,6 @@ void main(void)
 	vert_shade = vec3(shade);
 
 	vert_TexCoord = inTexCoord;
-	gl_Position = projectionMatrix * lookMatrix * translation * rotationX * rotationZ  * vec4(in_Position, 1.0);
+	gl_Position = projectionMatrix * lookMatrix * transform  * vec4(in_Position, 1.0);
 
 }
