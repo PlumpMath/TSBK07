@@ -1,0 +1,45 @@
+% -*- compile-command: "pdflatex lab2.tex"-*-
+\documentclass[a4paper,12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[swedish]{babel}
+\usepackage{listings}
+\begin{document}
+
+
+\section{Lab 3}
+\subsection{Hierarcical modelling, the windmill}
+\subsubsection{How can you get all four blades to rotate with just one time-dependent rotation matrix?}
+Using the magic of M\_PI.
+
+$
+		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
+$
+
+\subsubsection{How do you make the wings follow the body's movements?}
+We constructed the translation matrix of the wings by adding the translation matrix of the walls to a new matrix. Though MatrixAdd is working out very oddly for us.
+
+\subsubsection{You may have to tweak some numbers to make the placement right. How can you do that without making a lot of small changes in numbers in the code followed by recompilations?}
+
+In main we first run InitKeymapManager() and then in our update loop we have the following code:
+
+\begin{lstlisting}
+	if(keyIsDown('w'))
+		y += 0.1;
+	else if (keyIsDown('s'))
+		y -= 0.1;
+	if(keyIsDown('a'))
+		x -= 0.1;
+	else if(keyIsDown('d'))
+		x += 0.1;
+	if(keyIsDown('q'))
+		z += 0.1;
+	else if(keyIsDown('e'))
+		z -= 0.1;
+
+	if (keyIsDown('p'))
+		printf("%f %f %f \n", x, y, z);
+
+	transBlade = T(x, y, z);
+\end{lstlisting}
+
+\end{document}
