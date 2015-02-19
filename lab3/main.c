@@ -49,8 +49,7 @@ void init(void)
 	blade = LoadModelPlus("windmill/blade.obj");
 	balcony = LoadModelPlus("windmill/windmill-balcony.obj");
 	transWalls = T(0, -10, -20);
-	transRoof = transWalls;
-	transBlade = MatrixAdd(transWalls, T(0, 0, -15));
+	transRoof = MatrixAdd(transWalls, T(0, 0, 0));
 	transBalcony = Mult(transWalls, Ry(M_PI / 2));
 
 	// Load textures
