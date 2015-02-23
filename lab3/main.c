@@ -17,7 +17,7 @@
 #include <math.h>
 #include "LoadTGA.h"
 #include "VectorUtils3.h"
-#include "lab2.h"
+#include "main.h"
 
 #define near 1.0
 #define far 30.0
@@ -49,7 +49,7 @@ void init(void)
 	blade = LoadModelPlus("windmill/blade.obj");
 	balcony = LoadModelPlus("windmill/windmill-balcony.obj");
 	transWalls = T(0, -10, -20);
-	transRoof = MatrixAdd(transWalls, T(0, 0, 0));
+	transRoof = Mult(transWalls, T(0, 0, 0));
 	transBalcony = Mult(transWalls, Ry(M_PI / 2));
 
 	// Load textures
@@ -88,8 +88,8 @@ void OnTimer(int value)
 }
 
 GLfloat x = 0;
-GLfloat y = -10;
-GLfloat z = -20;
+GLfloat y = -0.8;
+GLfloat z = -15.4;
 
 void display(void)
 {
@@ -99,25 +99,11 @@ void display(void)
 
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	if(keyIsDown('w'))
-		y += 0.1;
-	else if (keyIsDown('s'))
-		y -= 0.1;
-	if(keyIsDown('a'))
-		x -= 0.1;
-	else if(keyIsDown('d'))
-		x += 0.1;
-	if(keyIsDown('q'))
-		z += 0.1;
-	else if(keyIsDown('e'))
-		z -= 0.1;
-
+       
+	vec3 translation = moveOnKeyInput(x, y, z);
+	transBlade = T(translation.x, translation.y, translation.z);
 	if (keyIsDown('p'))
-		printf("%f %f %f \n", x, y, z);
-
-	transBlade = T(x, y, z);
+		printf("%f %f %f \n", translation.x, translation.y, translation.z);
 
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
@@ -149,4 +135,26 @@ int main(int argc, char *argv[])
 	glutTimerFunc(16.7, &OnTimer, 0);
 	glutMainLoop();
 
+}
+
+vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z){
+  struct vec3 returnValue;
+  returnValue.x = x;
+  returnValue.y = y;
+  returnValue.z = z;
+
+  if(keyIsDown('w'))
+    returnValue.y += 0.1;
+  else if (keyIsDown('s'))
+    returnValue.y -= - 0.1;
+  if(keyIsDown('a'))
+    returnValue.x += 0.1;
+  else if(keyIsDown('d'))
+    returnValue.x -= 0.1;
+  if(keyIsDown('q'))
+    returnValue.z += 0.1;
+  else if(keyIsDown('e'))
+    returnValue.z -= 0.1;
+
+  return returnValue;
 }
