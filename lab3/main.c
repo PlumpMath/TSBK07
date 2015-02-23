@@ -43,11 +43,13 @@ mat4 lookMatrix;
 vec3 cameraPos;
 vec3 cameraDirection;
 vec3 cameraNormal;
+vec3 bladePos;
 
 void init(void)
 {
+  bladePos = (vec3){0, 9, 4.5};
   cameraPos = (vec3){0.0f, 0.0f, 0.0f};
-  cameraDirection = (vec3){-0.0f, -10.0f, -20.0f};
+  cameraDirection = (vec3){-0.0f, 0.0f, 0.0f};
   cameraNormal = (vec3){0.0f, 1.0f, 0.0f};
   lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
 
@@ -57,7 +59,7 @@ void init(void)
 	roof = LoadModelPlus("windmill/windmill-roof.obj");
 	blade = LoadModelPlus("windmill/blade.obj");
 	balcony = LoadModelPlus("windmill/windmill-balcony.obj");
-	transWalls = T(0, -10, -20);
+	transWalls = T(0, 0, 0);
 	transRoof = Mult(transWalls, T(0, 0, 0));
 	transBalcony = Mult(transWalls, Ry(M_PI / 2));
 
@@ -94,10 +96,6 @@ void OnTimer(int value)
     glutTimerFunc(20, &OnTimer, value);
 }
 
-GLfloat x = 0;
-GLfloat y = -0.8;
-GLfloat z = -15.4;
-
 void display(void)
 {
 	printError("pre display");
@@ -107,16 +105,17 @@ void display(void)
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
        
-	vec3 translation = moveOnKeyInput(x, y, z);
-	transBlade = T(translation.x, translation.y, translation.z);
+	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	if (keyIsDown('p'))
-		printf("%f %f %f \n", translation.x, translation.y, translation.z);
+		printf("%f %f %f \n", bladePos.x, bladePos.y, bladePos.z);
 
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
 		mat4 transform = Mult(transBlade, rotBlade);
 		drawObject(transform, blade);
 	}
+
+	cameraPos = moveOnKeyInput(cameraPos.x, cameraPos.y, cameraPos.z);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
 
@@ -150,11 +149,11 @@ int main(int argc, char *argv[])
 
 void handleMouse(int x, int y) 
 {
-
-  cameraPos = (vec3) {cos((float)x / 400 * M_PI) * 20, sin((float)y / 400 * M_PI) * 20, cameraPos.z};
-  
+  printf("%f %f %f \n", cameraPos.x, cameraPos.y, cameraPos.z);
+  cameraPos = (vec3) {sin((float)x / 400 * M_PI * 2) * 20,
+                      cos((float)y / 400 * M_PI * 2) * 20,
+                      cos((float)x / 400 * M_PI * 2) * 20};
   lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
-  
 }
 
 vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z)
@@ -167,7 +166,7 @@ vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z)
   if(keyIsDown('w'))
     returnValue.y += 0.1;
   else if (keyIsDown('s'))
-    returnValue.y -= - 0.1;
+    returnValue.y -= 0.1;
   if(keyIsDown('a'))
     returnValue.x += 0.1;
   else if(keyIsDown('d'))

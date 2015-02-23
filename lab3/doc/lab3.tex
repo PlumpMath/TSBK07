@@ -44,7 +44,13 @@ In main we first run InitKeymapManager() and then in our update loop we have the
 
 \subsection{Manual viewing controls}
 \subsubsection{What kind of control did you implement?}
+We implemented a rotation around the object based on the X-axis of the
+mouse. Moving the mouse in the Y-axis moves the camera along the
+Y-axis of the world. In practice we implemented cylindrical
+coordinates.
 
-\subsubsection{Can you make this kind of control in some other way than manipulating a "look-at" matrix?}
+\subsubsection{Can you make this kind of control in some other way
+  than manipulating a "look-at" matrix?}
+Probably, reasonably, yes. We could move every object in the world instead.
 
 \end{document}
