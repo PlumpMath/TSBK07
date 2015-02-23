@@ -17,10 +17,10 @@
 #include <math.h>
 #include "LoadTGA.h"
 #include "VectorUtils3.h"
-#include "lab2.h"
+#include "main.h"
 
 #define near 1.0
-#define far 30.0
+#define far 300.0
 #define right 0.5
 #define left -0.5
 #define top 0.5
@@ -39,17 +39,28 @@ mat4 transRoof;
 mat4 transBlade;
 mat4 transBalcony;
 
+mat4 lookMatrix;
+vec3 cameraPos;
+vec3 cameraDirection;
+vec3 cameraNormal;
+vec3 bladePos;
 
 void init(void)
 {
+  bladePos = (vec3){0, 9, 4.5};
+  cameraPos = (vec3){0.0f, 0.0f, 0.0f};
+  cameraDirection = (vec3){-0.0f, 0.0f, 0.0f};
+  cameraNormal = (vec3){0.0f, 1.0f, 0.0f};
+  lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
+
 	dumpInfo();
 
 	walls = LoadModelPlus("windmill/windmill-walls.obj");
 	roof = LoadModelPlus("windmill/windmill-roof.obj");
 	blade = LoadModelPlus("windmill/blade.obj");
 	balcony = LoadModelPlus("windmill/windmill-balcony.obj");
-	transWalls = T(0, -10, -20);
-	transRoof = MatrixAdd(transWalls, T(0, 0, 0));
+	transWalls = T(0, 0, 0);
+	transRoof = Mult(transWalls, T(0, 0, 0));
 	transBalcony = Mult(transWalls, Ry(M_PI / 2));
 
 	// Load textures
@@ -71,14 +82,12 @@ void init(void)
 	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
 
 	GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
-															0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
-															0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
-															0.0f, 0.0f, -1.0f, 0.0f };
-	mat4 lookMatrix = lookAt(0.0f, 0.0f, 0.0f,
-													 -0.0f, -0.0f, -1.0f,
-													 0.0f, 1.0f, 0.0f);
+                                      0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
+                                      0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
+                                      0.0f, 0.0f, -1.0f, 0.0f };
+
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+
 }
 
 void OnTimer(int value)
@@ -86,10 +95,6 @@ void OnTimer(int value)
     glutPostRedisplay();
     glutTimerFunc(20, &OnTimer, value);
 }
-
-GLfloat x = 0;
-GLfloat y = -10;
-GLfloat z = -20;
 
 void display(void)
 {
@@ -99,31 +104,21 @@ void display(void)
 
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	if(keyIsDown('w'))
-		y += 0.1;
-	else if (keyIsDown('s'))
-		y -= 0.1;
-	if(keyIsDown('a'))
-		x -= 0.1;
-	else if(keyIsDown('d'))
-		x += 0.1;
-	if(keyIsDown('q'))
-		z += 0.1;
-	else if(keyIsDown('e'))
-		z -= 0.1;
-
+       
+	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	if (keyIsDown('p'))
-		printf("%f %f %f \n", x, y, z);
-
-	transBlade = T(x, y, z);
+		printf("%f %f %f \n", bladePos.x, bladePos.y, bladePos.z);
 
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
 		mat4 transform = Mult(transBlade, rotBlade);
 		drawObject(transform, blade);
 	}
+
+	cameraPos = moveOnKeyInput(cameraPos.x, cameraPos.y, cameraPos.z);
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+
 	drawObject(transWalls, walls);
 	drawObject(transRoof, roof);
 	drawObject(transBalcony, balcony);
@@ -145,8 +140,41 @@ int main(int argc, char *argv[])
 	glutCreateWindow ("Lab 3");
 	glutDisplayFunc(display);
 	initKeymapManager();
+	glutPassiveMotionFunc(handleMouse);
 	init ();
 	glutTimerFunc(16.7, &OnTimer, 0);
 	glutMainLoop();
+	
+}
 
+void handleMouse(int x, int y) 
+{
+  printf("%f %f %f \n", cameraPos.x, cameraPos.y, cameraPos.z);
+  cameraPos = (vec3) {sin((float)x / 400 * M_PI * 2) * 20,
+                      cos((float)y / 400 * M_PI * 2) * 20,
+                      cos((float)x / 400 * M_PI * 2) * 20};
+  lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
+}
+
+vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z)
+{
+  struct vec3 returnValue;
+  returnValue.x = x;
+  returnValue.y = y;
+  returnValue.z = z;
+
+  if(keyIsDown('w'))
+    returnValue.y += 0.1;
+  else if (keyIsDown('s'))
+    returnValue.y -= 0.1;
+  if(keyIsDown('a'))
+    returnValue.x += 0.1;
+  else if(keyIsDown('d'))
+    returnValue.x -= 0.1;
+  if(keyIsDown('q'))
+    returnValue.z += 0.1;
+  else if(keyIsDown('e'))
+    returnValue.z -= 0.1;
+
+  return returnValue;
 }

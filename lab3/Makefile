@@ -14,4 +14,4 @@ LoadTGA.o: LoadTGA.h
 	gcc -w -c LoadTGA.c
 
 clean :
-	rm lab3 LoadTGA.o MicroGlut.o loadobj.o
+	rm lab3 LoadTGA.o MicroGlut.o
