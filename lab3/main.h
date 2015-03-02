@@ -8,4 +8,6 @@ void drawObject(mat4 transform, Model* model);
 
 vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z);
 
+vec3 moveOnKeyInputRelativeCamera(vec3 in);
+
 void handleMouse(int x, int y);
