@@ -53,4 +53,18 @@ coordinates.
   than manipulating a "look-at" matrix?}
 Probably, reasonably, yes. We could move every object in the world instead.
 
+\subsection{Virtual world and skybox}
+\subsubsection{How did you handle the camera matrix for the skybox?}
+We constructed it using the following code:
+\begin{lstlisting}[float,label=lst:cameramatrix,caption=nextHopInfo: Camera matrix code]
+  	drawObject(T(cameraPos.x, cameraPos.y, cameraPos.z), skybox);
+\end{lstlisting}
+This centers the skybox around the camera.
+
+\subsubsection{How did you represent the objects? Is this a good way to manage a scene or would you do it differently for a ``real'' application?}
+We have not grouped together a model with a texture and translation matrix, making our code not scale very well to bigger projects.
+
+\subsubsection{What special considerations are needed when rendering a skybox?}
+We turned off the Z-buffer.
+
 \end{document}

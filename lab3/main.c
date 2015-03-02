@@ -48,26 +48,23 @@ mat4 transTeapot;
 
 GLuint concrete;
 GLuint grass;
+GLuint skyTexture;
 
 mat4 lookMatrix;
 vec3 cameraPos;
-vec3 cameraDirection;
+vec3 cameraTarget;
 vec3 cameraNormal;
+vec3 cameraDirection;
 vec3 bladePos;
-/*
-vec3 objectpos = {0,0,0};
-	objectpos = moveOnKeyInput(objectpos.x, objectpos.y, objectpos.z);
-	if (keyIsDown('p'))
-		printf("%f %f %f \n", objectpos.x, objectpos.y, objectpos.z);
-*/
+
 
 void init(void)
 {
   bladePos = (vec3){0, 9, 4.5};
   cameraPos = (vec3){10.5f, 13.6f, 23.0f};
-  cameraDirection = (vec3){-10.0f, -10.0f, -10.0f};
+  cameraTarget = (vec3){-10.0f, -10.0f, -10.0f};
   cameraNormal = (vec3){0.0f, 1.0f, 0.0f};
-  lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
+  lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
 
 	dumpInfo();
 
@@ -75,24 +72,21 @@ void init(void)
 	roof = LoadModelPlus("windmill/windmill-roof.obj");
 	blade = LoadModelPlus("windmill/blade.obj");
 	balcony = LoadModelPlus("windmill/windmill-balcony.obj");
-	ground = LoadModelPlus("ground.obj");
+	ground = LoadModelPlus("models/LittleNell/Tree/ground.obj");
 	bunny = LoadModelPlus("bunnyplus.obj");
 	teapot = LoadModelPlus("teapot.obj");
 	skybox = LoadModelPlus("skybox.obj");
 	transWalls = T(0, 0, 0);
 	transRoof = Mult(transWalls, T(0, 0, 0));
 	transBalcony = Mult(transWalls, Ry(M_PI / 2));
-	transGround = Mult(T(-5.3,1.8,-1.5), Rz(M_PI/2));	
+	transGround = Mult(T(-5.3,1.8,-1.5), Rz(M_PI/2));
 	transBunny = T(-2.2, -2.3, 10.2);
 	transTeapot = T(34.4, 6.4, -30.4);
 
-
-
-
 	// Load textures
-
 	LoadTGATextureSimple("conc.tga", &concrete);
 	LoadTGATextureSimple("grass.tga", &grass);
+	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
 
 	// GL inits
 	glClearColor(1.0,0.0,0.0,0);
@@ -105,12 +99,13 @@ void init(void)
 	// Load and compile shader
 	program = loadShaders("lab2.vert", "lab2.frag");
 
-
-
-	GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f, (right+left)/(right-left), 0.0f,
-                                      0.0f, 2.0f*near/(top-bottom), (top+bottom)/(top-bottom), 0.0f,
-                                      0.0f, 0.0f, -(far + near)/(far - near), -2*far*near/(far - near),
-                                      0.0f, 0.0f, -1.0f, 0.0f };
+	GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f,
+                                (right+left)/(right-left), 0.0f,
+                                0.0f, 2.0f*near/(top-bottom),
+                                (top+bottom)/(top-bottom), 0.0f,
+                                0.0f, 0.0f, -(far + near)/(far - near),
+                                -2*far*near/(far - near),
+                                0.0f, 0.0f, -1.0f, 0.0f };
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 
@@ -125,12 +120,15 @@ void OnTimer(int value)
 void display(void)
 {
 	printError("pre display");
-
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
-
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-       
+
+	glBindTexture(GL_TEXTURE_2D, skyTexture);
+	glDisable(GL_DEPTH_TEST);
+	drawObject(T(cameraPos.x, cameraPos.y, cameraPos.z), skybox);
+	glEnable(GL_DEPTH_TEST);
+
 	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
@@ -138,13 +136,9 @@ void display(void)
 		drawObject(transform, blade);
 	}
 
-        cameraPos = moveOnKeyInput(cameraPos.x, cameraPos.y, cameraPos.z);
-	lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
+	cameraPos = moveOnKeyInputRelativeCamera(cameraPos);
+	lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
 	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
-
-	glDisable(GL_DEPTH_TEST);
-
-	glEnable(GL_DEPTH_TEST);
 
 	glBindTexture(GL_TEXTURE_2D, concrete);
 	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
@@ -183,51 +177,48 @@ int main(int argc, char *argv[])
 	glutMainLoop();
 }
 
-void handleMouse(int x, int y) 
+void handleMouse(int x, int y)
 {
+  cameraTarget = (vec3) {cos((float)x / 400 * M_PI * 2) * 20,
+												 cos((float)y / 400 * M_PI * 2) * 20,
+												 sin((float)x / 400 * M_PI * 2) * 20};
+	cameraTarget = VectorAdd(cameraTarget, cameraPos);
 
-    printf("%f %f %f \n  %f  %f \n", cameraPos.x, cameraPos.y, cameraPos.z, (float)x/400, (float)y/400);
-  cameraDirection = (vec3) {cos((float)x / 400 * M_PI * 2) * 20,
-                      cos((float)y / 400 * M_PI * 2) * 20,
-                      sin((float)x / 400 * M_PI * 2) * 20};
-  
-  lookMatrix = lookAtv(cameraPos, cameraDirection, cameraNormal);
+  lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
+	cameraDirection = Normalize(VectorSub(cameraTarget, cameraPos));
 }
 
-vec3 moveOnKeyInput(GLfloat x, GLfloat y, GLfloat z)
-{
-  struct vec3 returnValue;
-  returnValue.x = x;
-  returnValue.y = y;
-  returnValue.z = z;
 
-  if(keyIsDown('w'))
-    returnValue.y += 1;
-  else if (keyIsDown('s'))
-    returnValue.y -= 1;
-  if(keyIsDown('a'))
-    returnValue.x += 1;
-  else if(keyIsDown('d'))
-    returnValue.x -= 1;
-  if(keyIsDown('q'))
-    returnValue.z += 1;
-  else if(keyIsDown('e'))
-    returnValue.z -= 1;
 
-  return returnValue;
-}
-/*
 vec3 moveOnKeyInputRelativeCamera(vec3 in)
 {
-  if(keyIsDown('w'))
-    in.y += 0.1 * cameraDirection
-;
-  else if (keyIsDown('s'))
-    in.y -= 0.1;
-  if(keyIsDown('a'))
-    in.x += 0.1;
-  else if(keyIsDown('d'))
-    in.x -= 0.1;
+	vec3 forward;
+	vec3 leftV;
+	forward = ScalarMult(cameraDirection, 0.5f);
+	leftV = ScalarMult(CrossProduct(cameraDirection, cameraNormal), 0.5f);
+
+  if(keyIsDown('w')) {
+    in.x += forward.x;
+    in.y += forward.y;
+    in.z += forward.z;
+	}
+  else if (keyIsDown('s')) {
+    in.x -= forward.x;
+    in.y -= forward.y;
+    in.z -= forward.z;
+	}
+
+  if(keyIsDown('a')){
+		in.x -= leftV.x;
+    in.y -= leftV.y;
+    in.z -= leftV.z;
+	}
+  else if(keyIsDown('d')){
+		in.x += leftV.x;
+    in.y += leftV.y;
+    in.z += leftV.z;
+	}
+
   if(keyIsDown('q'))
     in.z += 0.1;
   else if(keyIsDown('e'))
@@ -235,4 +226,3 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in)
 
   return in;
 }
-*/
