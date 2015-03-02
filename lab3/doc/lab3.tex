@@ -67,4 +67,13 @@ We have not grouped together a model with a texture and translation matrix, maki
 \subsubsection{What special considerations are needed when rendering a skybox?}
 We turned off the Z-buffer.
 
+\subsection{Specular shading, external light sources}
+\subsubsection{How do you generate a vector from the surface to the eye? }
+\begin{lstlisting}[float,label=lst:label,caption=nextHopInfo: Surface to eye]
+	vec3 eyeDirection = normalize(mat3(transform) * (-vert_surface));
+\end{lstlisting}
+
+\subsubsection{Which vectors need renormalization in the fragment shader? }
+We normalize all directions which we modif. For example eyeDirection.
+
 \end{document}

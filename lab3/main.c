@@ -109,6 +109,28 @@ void init(void)
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 
+	printError("Light and shit");
+  Point3D lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f},   // Red light
+                                      {0.0f, 1.0f, 0.0f},   // Green light
+                                      {0.0f, 0.0f, 1.0f},   // Blue light
+                                      {1.0f, 1.0f, 1.0f} }; // White light
+
+	GLfloat specularExponent[] = {10.0, 20.0, 60.0, 5.0};
+	GLint isDirectional[] = {0,0,1,1};
+	Point3D lightSourcesDirectionsPositions[] = { {10.0f, 5.0f, 0.0f}, // Red light, positional
+																								{0.0f, 5.0f, 10.0f}, // Green light, positional
+																								{-1.0f, 0.0f, 0.0f}, // Blue light along X
+																								{0.0f, 0.0f, -1.0f} }; // White light along Z
+
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"),
+							 4, &lightSourcesDirectionsPositions[0].x);
+	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"),
+							 4, &lightSourcesColorsArr[0].x);
+	glUniform1fv(glGetUniformLocation(program, "specularExponent"),
+							 4, specularExponent);
+	glUniform1iv(glGetUniformLocation(program, "isDirectional"),
+							 4, isDirectional);
+
 }
 
 void OnTimer(int value)
