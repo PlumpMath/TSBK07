@@ -45,6 +45,6 @@ void main(void){
 	}
 	light = clamp(light, 0, 1);
 
-	out_Color =
-		texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
+	out_Color = sin(vert_surface.x) * texture(maskrosen, vert_TexCoord) * vec4(light, 1.0) +
+		(1 - sin(vert_surface.x)) * texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
 }
