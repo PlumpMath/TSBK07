@@ -50,6 +50,7 @@ mat4 transTeapot;
 GLuint concrete;
 GLuint grass;
 GLuint skyTexture;
+GLuint maskrosTexture;
 
 mat4 lookMatrix;
 vec3 cameraPos;
@@ -87,7 +88,8 @@ void init(void)
 	// Load textures
 	LoadTGATextureSimple("conc.tga", &concrete);
 	LoadTGATextureSimple("grass.tga", &grass);
-
+	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
+	LoadTGATextureSimple("maskros512.tga", &maskrosTexture);
 
 	// GL inits
 	printError("GL inits");
@@ -110,9 +112,11 @@ void init(void)
 
 	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
-	printError("init(): before projectionmatrix");
-	printError("init(): projectionmatrix");
-
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, maskrosTexture);
+	glUniform1i(glGetUniformLocation(program, "maskrosen"), 1);
+	printError("init(): Multitexturing");
+	glActiveTexture(GL_TEXTURE0);
 
   Point3D lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f},   // Red light
                                       {0.0f, 1.0f, 0.0f},   // Green light
@@ -135,13 +139,12 @@ void init(void)
 							 4, isDirectional);
 	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
 
-
 	glUseProgram(skyboxProgram);
-	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
+	glActiveTexture(GL_TEXTURE0);
 	glUniform1i(glGetUniformLocation(skyboxProgram, "texUnit"), 0); // Texture unit 0
 	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 
-	printError("init()");
+	printError("init(): End");
 }
 
 void OnTimer(int value)
@@ -163,8 +166,6 @@ void display(void)
 
 	glUseProgram(skyboxProgram);
 	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
-	glActiveTexture(GL_TEXTURE0);
-
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
 	glDisable(GL_DEPTH_TEST);
 

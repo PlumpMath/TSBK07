@@ -11,6 +11,7 @@ uniform bool isDirectional[4];
 
 uniform mat4 transform;
 uniform sampler2D texUnit;
+uniform sampler2D maskrosen;
 
 out vec4 out_Color;
 
@@ -31,5 +32,6 @@ void main(void){
 	}
 
 	vec3 light = specularStrength * lightSourcesColorArr[2] + shade;
-	out_Color = texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
+	out_Color = sin(vert_surface.x) * texture(maskrosen, vert_TexCoord) * vec4(light, 1.0) +
+		(1 - sin(vert_surface.x)) * texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
 }

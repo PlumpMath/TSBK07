@@ -76,4 +76,16 @@ We turned off the Z-buffer.
 \subsubsection{Which vectors need renormalization in the fragment shader? }
 We normalize all directions which we modif. For example eyeDirection.
 
+
+\subsection{Multitexturing}
+\subsubsection{How did you choose to combine the texture colour and the lighting colour?}
+Multiplication.
+\subsubsection{How did you choose to combine the two textures?}
+We blended between two textures using the following code:
+
+\begin{lstlisting}[float,label=lst:lol,caption=nextHopInfo: Fragment shader]
+  	out_Color = sin(vert_surface.x) * texture(maskrosen, vert_TexCoord) * vec4(light, 1.0) +
+		(1 - sin(vert_surface.x)) * texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
+\end{lstlisting}
+
 \end{document}
