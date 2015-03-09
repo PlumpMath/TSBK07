@@ -87,7 +87,7 @@ void init(void)
 	// Load textures
 	LoadTGATextureSimple("conc.tga", &concrete);
 	LoadTGATextureSimple("grass.tga", &grass);
-	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
+
 
 	// GL inits
 	printError("GL inits");
@@ -97,7 +97,7 @@ void init(void)
 	glEnable(GL_BLEND);
 
 	// Load and compile shader
-	skyboxProgram = loadShaders("lab2.vert", "skybox.frag");
+	skyboxProgram = loadShaders("skybox.vert", "skybox.frag");
 	program = loadShaders("lab2.vert", "lab2.frag");
 
 	GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f,
@@ -108,9 +108,9 @@ void init(void)
                                 -2*far*near/(far - near),
                                 0.0f, 0.0f, -1.0f, 0.0f };
 
+	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	printError("init(): before projectionmatrix");
-	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 	printError("init(): projectionmatrix");
 
 
@@ -133,11 +133,13 @@ void init(void)
 							 4, specularExponent);
 	glUniform1iv(glGetUniformLocation(program, "isDirectional"),
 							 4, isDirectional);
-	printError("Light and shit");
-
 	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
-	printError("init() halfway over the rainbow");
+
+
+	glUseProgram(skyboxProgram);
+	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
 	glUniform1i(glGetUniformLocation(skyboxProgram, "texUnit"), 0); // Texture unit 0
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
 
 	printError("init()");
 }
@@ -154,21 +156,25 @@ void display(void)
 	printError("pre display");
 	cameraPos = moveOnKeyInputRelativeCamera(cameraPos);
 	lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
-	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
-	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
 
-	printError("display");
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glUseProgram(skyboxProgram);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+	glActiveTexture(GL_TEXTURE0);
+
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
 	glDisable(GL_DEPTH_TEST);
-	drawObject(T(cameraPos.x, cameraPos.y, cameraPos.z), skybox, skyboxProgram);
+
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "transform"), 1, GL_TRUE, T(cameraPos.x, cameraPos.y, cameraPos.z).m);
+	DrawModel(skybox, skyboxProgram, "in_Position", NULL, "in_TexCoord");
+
 	glEnable(GL_DEPTH_TEST);
 	glUseProgram(program);
 
+	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
 	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
