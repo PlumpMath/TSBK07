@@ -176,6 +176,7 @@ void display(void)
 	glUseProgram(program);
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos);
 	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
