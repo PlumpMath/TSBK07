@@ -1,4 +1,4 @@
-% -*- compile-command: "pdflatex lab2.tex"-*-
+% -*- compile-command: "pdflatex lab3.tex"-*-
 \documentclass[a4paper,12pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[swedish]{babel}
@@ -69,11 +69,27 @@ We turned off the Z-buffer.
 
 \subsection{Specular shading, external light sources}
 \subsubsection{How do you generate a vector from the surface to the eye? }
-\begin{lstlisting}[float,label=lst:label,caption=nextHopInfo: Surface to eye]
-	vec3 eyeDirection = normalize(mat3(transform) * (-vert_surface));
+\begin{lstlisting}[float,label=lst:label,caption=Surface to eye]
+vec3 eyeDirection =
+  normalize(mat3(transform) * (-vert_surface));
 \end{lstlisting}
 
 \subsubsection{Which vectors need renormalization in the fragment shader? }
 We normalize all directions which we modif. For example eyeDirection.
+
+
+\subsection{Multitexturing}
+\subsubsection{How did you choose to combine the texture colour and the lighting colour?}
+Multiplication. We multiply the texture color by the lighting color.
+
+\subsubsection{How did you choose to combine the two textures?}
+We blended between two textures using the code in listing~\ref{lst:lol}.
+
+\begin{lstlisting}[float,label=lst:lol,caption=Fragment shader]
+out_Color = sin(vert_surface.x) *
+  texture(maskrosen, vert_TexCoord) * vec4(light, 1.0) +
+  (1 - sin(vert_surface.x)) *
+  texture(texUnit, vert_TexCoord) * vec4(light, 1.0);
+\end{lstlisting}
 
 \end{document}

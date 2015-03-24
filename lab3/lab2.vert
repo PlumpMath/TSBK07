@@ -13,8 +13,8 @@ out vec3 vert_surface;
 
 void main(void)
 {
-	vert_normal = in_Normal;
-	vert_surface = in_Position;
+	vert_normal = mat3(transform) * in_Normal;
+	vert_surface = mat3(transform) * in_Position;
 	vert_TexCoord = in_TexCoord;
-	gl_Position = projectionMatrix * lookMatrix * transform  * vec4(in_Position, 1.0);
+	gl_Position = projectionMatrix * lookMatrix * transform * vec4(in_Position, 1.0);
 }

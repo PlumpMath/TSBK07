@@ -29,6 +29,7 @@
 // vertex array object
 unsigned int vertexArrayObjID;
 GLuint program;
+GLuint skyboxProgram;
 
 Model *walls;
 Model *roof;
@@ -49,6 +50,7 @@ mat4 transTeapot;
 GLuint concrete;
 GLuint grass;
 GLuint skyTexture;
+GLuint maskrosTexture;
 
 mat4 lookMatrix;
 vec3 cameraPos;
@@ -87,16 +89,17 @@ void init(void)
 	LoadTGATextureSimple("conc.tga", &concrete);
 	LoadTGATextureSimple("grass.tga", &grass);
 	LoadTGATextureSimple("SkyBox512.tga", &skyTexture);
+	LoadTGATextureSimple("maskros512.tga", &maskrosTexture);
 
 	// GL inits
-	glClearColor(1.0,0.0,0.0,0);
-	glDisable(GL_DEPTH_TEST);
 	printError("GL inits");
+	glClearColor(1.0,0.0,0.0,0);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 
 	// Load and compile shader
+	skyboxProgram = loadShaders("skybox.vert", "skybox.frag");
 	program = loadShaders("lab2.vert", "lab2.frag");
 
 	GLfloat projectionMatrix[] = {2.0f*near/(right-left), 0.0f,
@@ -107,21 +110,25 @@ void init(void)
                                 -2*far*near/(far - near),
                                 0.0f, 0.0f, -1.0f, 0.0f };
 
+	glUseProgram(program);
 	glUniformMatrix4fv(glGetUniformLocation(program, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, maskrosTexture);
+	glUniform1i(glGetUniformLocation(program, "maskrosen"), 1);
+	printError("init(): Multitexturing");
+	glActiveTexture(GL_TEXTURE0);
 
-	printError("Light and shit");
   Point3D lightSourcesColorsArr[] = { {1.0f, 0.0f, 0.0f},   // Red light
                                       {0.0f, 1.0f, 0.0f},   // Green light
                                       {0.0f, 0.0f, 1.0f},   // Blue light
                                       {1.0f, 1.0f, 1.0f} }; // White light
-
+	printError("init(): After lightSourcescolorsarr");
 	GLfloat specularExponent[] = {10.0, 20.0, 60.0, 5.0};
 	GLint isDirectional[] = {0,0,1,1};
 	Point3D lightSourcesDirectionsPositions[] = { {10.0f, 5.0f, 0.0f}, // Red light, positional
 																								{0.0f, 5.0f, 10.0f}, // Green light, positional
 																								{-1.0f, 0.0f, 0.0f}, // Blue light along X
 																								{0.0f, 0.0f, -1.0f} }; // White light along Z
-
 	glUniform3fv(glGetUniformLocation(program, "lightSourcesDirPosArr"),
 							 4, &lightSourcesDirectionsPositions[0].x);
 	glUniform3fv(glGetUniformLocation(program, "lightSourcesColorArr"),
@@ -130,60 +137,71 @@ void init(void)
 							 4, specularExponent);
 	glUniform1iv(glGetUniformLocation(program, "isDirectional"),
 							 4, isDirectional);
+	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
 
+	glUseProgram(skyboxProgram);
+	glActiveTexture(GL_TEXTURE0);
+	glUniform1i(glGetUniformLocation(skyboxProgram, "texUnit"), 0); // Texture unit 0
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "projectionMatrix"), 1, GL_TRUE, projectionMatrix);
+
+	printError("init(): End");
 }
 
 void OnTimer(int value)
 {
     glutPostRedisplay();
     glutTimerFunc(20, &OnTimer, value);
+	printError("OnTimer()");
 }
 
 void display(void)
 {
 	printError("pre display");
+	cameraPos = moveOnKeyInputRelativeCamera(cameraPos);
+	lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
+
 	GLfloat t = (GLfloat)glutGet(GLUT_ELAPSED_TIME) / 5000;
 	// clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	glUseProgram(skyboxProgram);
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
 	glBindTexture(GL_TEXTURE_2D, skyTexture);
 	glDisable(GL_DEPTH_TEST);
-	drawObject(T(cameraPos.x, cameraPos.y, cameraPos.z), skybox);
-	glEnable(GL_DEPTH_TEST);
 
+	glUniformMatrix4fv(glGetUniformLocation(skyboxProgram, "transform"), 1, GL_TRUE, T(cameraPos.x, cameraPos.y, cameraPos.z).m);
+	DrawModel(skybox, skyboxProgram, "in_Position", NULL, "in_TexCoord");
+
+	glEnable(GL_DEPTH_TEST);
+	glUseProgram(program);
+
+	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
+	glUniform3fv(glGetUniformLocation(program, "cameraPos"), 1, &cameraPos);
 	transBlade = T(bladePos.x, bladePos.y, bladePos.z);
 	for (int i = 0; i < 4; i++){
 		mat4 rotBlade = Mult(Rz(M_PI / 2 * i + t), Ry(M_PI / 2));
 		mat4 transform = Mult(transBlade, rotBlade);
-		drawObject(transform, blade);
+		drawObject(transform, blade, program);
 	}
 
-	cameraPos = moveOnKeyInputRelativeCamera(cameraPos);
-	lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
-	glUniformMatrix4fv(glGetUniformLocation(program, "lookMatrix"), 1, GL_TRUE, lookMatrix.m);
-
 	glBindTexture(GL_TEXTURE_2D, concrete);
-	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
-
-	drawObject(transWalls, walls);
-	drawObject(transRoof, roof);
-	drawObject(transBalcony, balcony);
+	drawObject(transWalls, walls, program);
+	drawObject(transRoof, roof, program);
+	drawObject(transBalcony, balcony, program);
 
 	glBindTexture(GL_TEXTURE_2D, grass);
-	glUniform1i(glGetUniformLocation(program, "texUnit"), 0); // Texture unit 0
-	drawObject(transGround,ground);
-	drawObject(transTeapot,teapot);
-	drawObject(transBunny,bunny);
+	drawObject(transGround,ground, program);
+	drawObject(transTeapot,teapot, program);
+	drawObject(transBunny,bunny, program);
 
-
-	printError("display");
 	glutSwapBuffers();
 }
 
-void drawObject(mat4 transform, Model* model)
+void drawObject(mat4 transform, Model* model, GLuint p)
 {
-	glUniformMatrix4fv(glGetUniformLocation(program, "transform"), 1, GL_TRUE, transform.m);
-	DrawModel(model, program, "in_Position", "in_Normal", "in_TexCoord");
+	glUniformMatrix4fv(glGetUniformLocation(p, "transform"), 1, GL_TRUE, transform.m);
+	DrawModel(model, p, "in_Position", "in_Normal", "in_TexCoord");
+	printError("drawObject()");
 }
 
 int main(int argc, char *argv[])
@@ -208,6 +226,7 @@ void handleMouse(int x, int y)
 
   lookMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
 	cameraDirection = Normalize(VectorSub(cameraTarget, cameraPos));
+	printError("handleMouse()");
 }
 
 
@@ -246,5 +265,7 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in)
   else if(keyIsDown('e'))
     in.z -= 0.1;
 
+
+	printError("moveonkeyinputrelativecamera()");
   return in;
 }
