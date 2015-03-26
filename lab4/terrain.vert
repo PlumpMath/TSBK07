@@ -9,8 +9,11 @@ out vec2 texCoord;
 uniform mat4 projMatrix;
 uniform mat4 mdlMatrix;
 
+out vec3 lol;
+
 void main(void)
 {
+	lol = inNormal * inNormal;
 	mat3 normalMatrix1 = mat3(mdlMatrix);
 	texCoord = inTexCoord;
 	gl_Position = projMatrix * mdlMatrix * vec4(inPosition, 1.0);
