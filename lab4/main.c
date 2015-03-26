@@ -45,7 +45,7 @@ Model* GenerateTerrain(TextureData *tex)
 												 vertexArray[(x + (z-1) * tex->width)*3 + 2]};
 			vec3 leftV = VectorSub(left, us);
 			vec3 topV = VectorSub(top, us);
-			vec3 normal = Normalize(CrossProduct(leftV, topV ));
+			vec3 normal = Normalize(CrossProduct(leftV, topV));
 
 			normalArray[(x + z * tex->width)*3 + 0] = normal.x;
 			normalArray[(x + z * tex->width)*3 + 1] = normal.y;

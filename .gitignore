@@ -69,3 +69,8 @@ build/
 *.exe
 *.out
 *.app
+
+# LaTeX stuff
+*.aux
+*.toc
+*.pdf
