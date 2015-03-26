@@ -34,9 +34,22 @@ Model* GenerateTerrain(TextureData *tex)
 			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 10.0;
 			vertexArray[(x + z * tex->width)*3 + 2] = z / 1.0;
 // Normal vectors. You need to calculate these.
-			normalArray[(x + z * tex->width)*3 + 0] = 0.0;
-			normalArray[(x + z * tex->width)*3 + 1] = 1.0;
-			normalArray[(x + z * tex->width)*3 + 2] = 0.0;
+			vec3 us =	(vec3) {vertexArray[(x + z * tex->width)*3 + 0],
+												vertexArray[(x + z * tex->width)*3 + 1],
+												vertexArray[(x + z * tex->width)*3 + 2]};
+			vec3 left =	(vec3) {vertexArray[(x-1 + z * tex->width)*3 + 0],
+													vertexArray[(x-1 + z * tex->width)*3 + 1],
+													vertexArray[(x-1 + z * tex->width)*3 + 2]};
+			vec3 top = (vec3) {vertexArray[(x + (z-1) * tex->width)*3 + 0],
+												 vertexArray[(x + (z-1) * tex->width)*3 + 1],
+												 vertexArray[(x + (z-1) * tex->width)*3 + 2]};
+			vec3 leftV = VectorSub(left, us);
+			vec3 topV = VectorSub(top, us);
+			vec3 normal = Normalize(CrossProduct(leftV, topV ));
+
+			normalArray[(x + z * tex->width)*3 + 0] = normal.x;
+			normalArray[(x + z * tex->width)*3 + 1] = normal.y;
+			normalArray[(x + z * tex->width)*3 + 2] = normal.z;
 // Texture coordinates. You may want to scale them.
 			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
 			texCoordArray[(x + z * tex->width)*2 + 1] = z; // (float)z / tex->height;
