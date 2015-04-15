@@ -14,6 +14,11 @@
 
 mat4 projectionMatrix;
 
+// Octagon
+Model *octagon;
+mat4 transOctagon;
+GLuint concrete;
+
 Model* GenerateTerrain(TextureData *tex)
 {
 	int vertexCount = tex->width * tex->height;
@@ -34,15 +39,28 @@ Model* GenerateTerrain(TextureData *tex)
 			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 10.0;
 			vertexArray[(x + z * tex->width)*3 + 2] = z / 1.0;
 // Normal vectors. You need to calculate these.
-			vec3 us =	(vec3) {vertexArray[(x + z * tex->width)*3 + 0],
-												vertexArray[(x + z * tex->width)*3 + 1],
-												vertexArray[(x + z * tex->width)*3 + 2]};
-			vec3 left =	(vec3) {vertexArray[(x-1 + z * tex->width)*3 + 0],
-													vertexArray[(x-1 + z * tex->width)*3 + 1],
-													vertexArray[(x-1 + z * tex->width)*3 + 2]};
-			vec3 top = (vec3) {vertexArray[(x + (z-1) * tex->width)*3 + 0],
-												 vertexArray[(x + (z-1) * tex->width)*3 + 1],
-												 vertexArray[(x + (z-1) * tex->width)*3 + 2]};
+			vec3 left; 
+			vec3 us;
+			vec3 top;
+			us =(vec3) {vertexArray[(x + z * tex->width)*3 + 0],
+					vertexArray[(x + z * tex->width)*3 + 1],
+					vertexArray[(x + z * tex->width)*3 + 2]};
+			if(x -1 < 0){
+			left =(vec3){0, 1, 0};
+			}
+			else{
+			left =(vec3) {vertexArray[(x-1 + z * tex->width)*3 + 0],
+					vertexArray[(x-1 + z * tex->width)*3 + 1],
+					vertexArray[(x-1 + z * tex->width)*3 + 2]};
+			}
+			if(z-1 < 0){
+			top=(vec3){0, 1, 0};
+			}
+			else {
+			top = (vec3){vertexArray[(x + (z-1) * tex->width)*3 + 0],
+					 vertexArray[(x + (z-1) * tex->width)*3 + 1],
+					 vertexArray[(x + (z-1) * tex->width)*3 + 2]};
+			}
 			vec3 leftV = VectorSub(left, us);
 			vec3 topV = VectorSub(top, us);
 			vec3 normal = Normalize(CrossProduct(leftV, topV));
@@ -51,8 +69,8 @@ Model* GenerateTerrain(TextureData *tex)
 			normalArray[(x + z * tex->width)*3 + 1] = normal.y;
 			normalArray[(x + z * tex->width)*3 + 2] = normal.z;
 // Texture coordinates. You may want to scale them.
-			texCoordArray[(x + z * tex->width)*2 + 0] = x; // (float)x / tex->width;
-			texCoordArray[(x + z * tex->width)*2 + 1] = z; // (float)z / tex->height;
+			texCoordArray[(x + z * tex->width)*2 + 0] = (float)x / tex->width;
+			texCoordArray[(x + z * tex->width)*2 + 1] = (float)z / tex->height;
 		}
 	for (x = 0; x < tex->width-1; x++)
 		for (z = 0; z < tex->height-1; z++)
@@ -109,6 +127,13 @@ void init(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
 	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
 	LoadTGATextureSimple("maskros512.tga", &tex1);
+	// Load object
+
+float octagonHeight = findHeight(2, 4);
+printf("%f\n", octagonHeight);
+	octagon = LoadModelPlus("octagon.obj");
+	transOctagon = T(84, 1, 90);
+	LoadTGATextureSimple("conc.tga", &concrete);
 
 // Load terrain data
 
@@ -116,11 +141,27 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 }
-vec3 cameraPos = {0, 5, 8};
+vec3 cameraPos = {84, 1, 90};
 vec3 cameraTarget = {0, 5, 8};
 vec3 cameraNormal = {0, 1, 0};
 mat4 camMatrix;
 
+void drawObject(mat4 transform, Model* model, GLuint p)
+{
+	glUniformMatrix4fv(glGetUniformLocation(p, "mdlMatrix"), 1, GL_TRUE, transform.m);
+	DrawModel(model, p, "inPosition", "inNormal", "inTexCoord");
+	printError("drawObject()");
+}
+/////////////////////////////////////////////////////////////////////
+float findHeight(int xpos, int zpos) 
+{
+//GLfloat *temp;
+//temp = tm->vertexArray;
+
+float y = 5;
+return y;
+}
+/////////////////////////////////////////////////////////////////////////
 
 void display(void)
 {
@@ -141,8 +182,12 @@ void display(void)
 	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
 
 	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
+
+
+	total = Mult(camMatrix, transOctagon);
+	glBindTexture(GL_TEXTURE_2D, concrete);
+	drawObject(total, octagon, program);
 
 	printError("display 2");
 
@@ -155,10 +200,6 @@ void timer(int i)
 	glutPostRedisplay();
 }
 
-GLfloat deltaTime = 1/60;
-GLfloat mouseSpeed = 0.005;
-GLfloat horizontalAngle =2*M_PI;
-GLfloat verticalAngle = 0;
 vec3 cameraDirection;
 
 void mouse(int x, int y)
@@ -221,6 +262,11 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in)
     in.z += leftV.z;
 	}
 
+  if(keyIsDown('p')){
+    printf("%f\n", cameraPos.x);
+    printf("%f\n", cameraPos.y);
+    printf("%f\n", cameraPos.z);
+	}
   if(keyIsDown('q'))
     in.z += 0.1;
   else if(keyIsDown('e'))
