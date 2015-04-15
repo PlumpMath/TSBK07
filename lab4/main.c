@@ -11,6 +11,7 @@
 #include "loadobj.h"
 #include "LoadTGA.h"
 #include "main.h"
+#include "math.h"
 
 mat4 projectionMatrix;
 
@@ -30,7 +31,8 @@ Model* GenerateTerrain(TextureData *tex)
 	GLfloat *texCoordArray = malloc(sizeof(GLfloat) * 2 * vertexCount);
 	GLuint *indexArray = malloc(sizeof(GLuint) * triangleCount*3);
 
-	printf("bpp %d\n", tex->bpp);
+	printf("bpp: %d\n", tex->bpp);
+	printf("width: %d\n", tex->width);
 	for (x = 0; x < tex->width; x++)
 		for (z = 0; z < tex->height; z++)
 		{
@@ -39,7 +41,7 @@ Model* GenerateTerrain(TextureData *tex)
 			vertexArray[(x + z * tex->width)*3 + 1] = tex->imageData[(x + z * tex->width) * (tex->bpp/8)] / 10.0;
 			vertexArray[(x + z * tex->width)*3 + 2] = z / 1.0;
 // Normal vectors. You need to calculate these.
-			vec3 left; 
+			vec3 left;
 			vec3 us;
 			vec3 top;
 			us =(vec3) {vertexArray[(x + z * tex->width)*3 + 0],
@@ -129,8 +131,6 @@ void init(void)
 	LoadTGATextureSimple("maskros512.tga", &tex1);
 	// Load object
 
-float octagonHeight = findHeight(2, 4);
-printf("%f\n", octagonHeight);
 	octagon = LoadModelPlus("octagon.obj");
 	transOctagon = T(84, 1, 90);
 	LoadTGATextureSimple("conc.tga", &concrete);
@@ -141,7 +141,7 @@ printf("%f\n", octagonHeight);
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 }
-vec3 cameraPos = {84, 1, 90};
+vec3 cameraPos = {70, 1, 74};
 vec3 cameraTarget = {0, 5, 8};
 vec3 cameraNormal = {0, 1, 0};
 mat4 camMatrix;
@@ -152,16 +152,34 @@ void drawObject(mat4 transform, Model* model, GLuint p)
 	DrawModel(model, p, "inPosition", "inNormal", "inTexCoord");
 	printError("drawObject()");
 }
-/////////////////////////////////////////////////////////////////////
-float findHeight(int xpos, int zpos) 
-{
-//GLfloat *temp;
-//temp = tm->vertexArray;
 
-float y = 5;
-return y;
+
+float findHeight(float xpos, float zpos)
+{
+	GLint cornerX = floor(xpos);
+	GLint cornerZ = floor(zpos);
+
+	if ((xpos - cornerX + zpos - cornerZ) > 1) {
+		cornerX += 1;
+		cornerZ += 1;
+	}
+
+	vec3 normal = (vec3)
+		{tm->normalArray[(cornerX + cornerZ * ttex.width)*3 + 0],
+		 tm->normalArray[(cornerX + cornerZ * ttex.width)*3 + 1],
+		 tm->normalArray[(cornerX + cornerZ * ttex.width)*3 + 2]};
+
+	vec3 position = (vec3)
+		{tm->vertexArray[(cornerX + cornerZ * ttex.width)*3 + 0],
+		 tm->vertexArray[(cornerX + cornerZ * ttex.width)*3 + 1],
+		 tm->vertexArray[(cornerX + cornerZ * ttex.width)*3 + 2]};
+
+	GLfloat D = normal.x * position.x + normal.y * position.y +
+		normal.z * position.z;
+
+	return -(D - normal.x * xpos - normal.z * zpos);
 }
-/////////////////////////////////////////////////////////////////////////
+
 
 void display(void)
 {
@@ -185,6 +203,7 @@ void display(void)
 	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
 
 
+	transOctagon = T(cameraPos.x - 2, findHeight(cameraPos.x - 2.0, cameraPos.z), cameraPos.z);
 	total = Mult(camMatrix, transOctagon);
 	glBindTexture(GL_TEXTURE_2D, concrete);
 	drawObject(total, octagon, program);
@@ -263,9 +282,9 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in)
 	}
 
   if(keyIsDown('p')){
-    printf("%f\n", cameraPos.x);
-    printf("%f\n", cameraPos.y);
-    printf("%f\n", cameraPos.z);
+    printf("(e%f, ", cameraPos.x);
+    printf("%f, ", cameraPos.y);
+    printf("%f)\n", cameraPos.z);
 	}
   if(keyIsDown('q'))
     in.z += 0.1;

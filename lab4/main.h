@@ -10,4 +10,4 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in);
 
 void handleMouse(int x, int y);
 
-float findHeight(int xpos, int ypos);
+float findHeight(float xpos, float ypos);
