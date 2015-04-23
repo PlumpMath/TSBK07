@@ -11,6 +11,7 @@ uniform mat4 mdlMatrix;
 out vec2 vert_texCoord;
 out vec3 vert_normal;
 out vec3 vert_surface;
+out vec4 world_position;
 
 void main(void)
 {
@@ -18,4 +19,5 @@ void main(void)
 	vert_surface = inPosition;
 	vert_texCoord = inTexCoord;
 	gl_Position = projMatrix * mdlMatrix * vec4(inPosition, 1.0);
+	world_position = gl_Position;
 }

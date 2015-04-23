@@ -11,3 +11,4 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in);
 void handleMouse(int x, int y);
 
 float findHeight(float xpos, float ypos);
+GLfloat getHeight(GLfloat xpos, GLfloat ypos, TextureData *tex);
