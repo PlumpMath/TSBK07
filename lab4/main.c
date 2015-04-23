@@ -19,6 +19,8 @@ mat4 projectionMatrix;
 Model *octagon;
 mat4 transOctagon;
 GLuint concrete;
+GLuint dirt;
+GLuint maskrosTexture;
 
 Model* GenerateTerrain(TextureData *tex)
 {
@@ -108,7 +110,6 @@ Model* GenerateTerrain(TextureData *tex)
 Model *m, *m2, *tm;
 // Reference to shader program
 GLuint program;
-GLuint tex1, tex2;
 TextureData ttex; // terrain
 
 void init(void)
@@ -127,13 +128,19 @@ void init(void)
 	printError("init shader");
 
 	glUniformMatrix4fv(glGetUniformLocation(program, "projMatrix"), 1, GL_TRUE, projectionMatrix.m);
-	glUniform1i(glGetUniformLocation(program, "tex"), 0); // Texture unit 0
-	LoadTGATextureSimple("maskros512.tga", &tex1);
+
+	// Load textures
+	LoadTGATextureSimple("maskros512.tga", &maskrosTexture);
+	LoadTGATextureSimple("dirt.tga", &dirt);
+
+	glUniform1i(glGetUniformLocation(program, "maskrosen"), 0); 
+	glUniform1i(glGetUniformLocation(program, "dirt"), 1);
+
 	// Load object
 
 	octagon = LoadModelPlus("octagon.obj");
 	transOctagon = T(84, 1, 90);
-	LoadTGATextureSimple("conc.tga", &concrete);
+	LoadTGATextureSimple("conc.tga", &concrete); 
 
 // Load terrain data
 
@@ -141,7 +148,7 @@ void init(void)
 	tm = GenerateTerrain(&ttex);
 	printError("init terrain");
 }
-vec3 cameraPos = {70, 1, 74};
+vec3 cameraPos = {70.0, 1.0, 74.0};
 vec3 cameraTarget = {0, 5, 8};
 vec3 cameraNormal = {0, 1, 0};
 mat4 camMatrix;
@@ -186,6 +193,8 @@ void display(void)
 	printError("pre display");
 	cameraPos = moveOnKeyInputRelativeCamera(cameraPos);
 	cameraTarget = moveOnKeyInputRelativeCamera(cameraTarget);
+	//cameraPos.y = findHeight(cameraPos.x, cameraPos.z) +2;
+	//cameraTarget.y = findHeight(cameraTarget.x, cameraTarget.z) +2;
 	camMatrix = lookAtv(cameraPos, cameraTarget, cameraNormal);
 
 	// clear the screen
@@ -194,19 +203,23 @@ void display(void)
 	mat4 total, modelView;
 	glUseProgram(program);
 
-	// Build matrix
+
+	// Draw terrain
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, maskrosTexture);
 	modelView = IdentityMatrix();
 	total = Mult(camMatrix, modelView);
-	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);
+	glUniformMatrix4fv(glGetUniformLocation(program, "mdlMatrix"), 1, GL_TRUE, total.m);	
+	drawObject(total, tm, program);
 
-	glBindTexture(GL_TEXTURE_2D, tex1);		// Bind Our Texture tex1
-	DrawModel(tm, program, "inPosition", "inNormal", "inTexCoord");
-
-
-	transOctagon = T(cameraPos.x - 2, findHeight(cameraPos.x - 2.0, cameraPos.z), cameraPos.z);
-	total = Mult(camMatrix, transOctagon);
+	// Draw octagon
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, concrete);
+	transOctagon = T(cameraPos.x - 5, findHeight(cameraPos.x - 5, cameraPos.z), cameraPos.z);
+	total = Mult(camMatrix, transOctagon);
 	drawObject(total, octagon, program);
+	
+	glActiveTexture(GL_TEXTURE0);
 
 	printError("display 2");
 
@@ -292,5 +305,6 @@ vec3 moveOnKeyInputRelativeCamera(vec3 in)
     in.z -= 0.1;
 
 	printError("moveonkeyinputrelativecamera()");
+
   return in;
 }
