@@ -14,7 +14,7 @@ void main(void)
 	float shade;
 	shade = clamp(dot(light, normalize(vert_normal)), 0, 1);
 
-if (vert_surface.y < 2)
+if (vert_surface.y > 1 && vert_surface.y < 10 )
 {
 outColor = texture(maskrosen, vert_texCoord)*shade;
 }
